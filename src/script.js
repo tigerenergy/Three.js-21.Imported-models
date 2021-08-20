@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 /**
  * Base
@@ -20,28 +21,38 @@ const scene = new THREE.Scene()
 /**
  * Models 
  */
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
+
 
 const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
 
+let mixer = null
 gltfLoader.load(
-    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    '/models/Fox/glTF/Fox.gltf',
     (gltf) =>
-    {
-        while(gltf.scene.children.length)
-        {
-            scene.add(gltf.scene.children[0])
-        }
-    },
+    {   
+       mixer = new THREE.AnimationMixer(gltf.scene)
+       const action = mixer.clipAction(gltf.animations[1])
+
+        action.play()
+        console.log(action)
+
+        gltf.scene.scale.set(0.025, 0.025, 0.025)
+        scene.add(gltf.scene)
+    }
 )
+
 
 
 /**
  * Floor
  */
 const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
+    new THREE.PlaneGeometry(100, 100),
     new THREE.MeshStandardMaterial({
-        color: '#444444',
+        color: 'green',
         metalness: 0,
         roughness: 0.5
     })
@@ -100,7 +111,7 @@ scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 0.75, 0)
+controls.target.set(0, 0, 0)
 controls.enableDamping = true
 
 /**
@@ -125,6 +136,12 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
+
+    // Update Mixer
+    if(mixer !== null)
+    {
+        mixer.update(deltaTime)
+    }
 
     // Update controls
     controls.update()
