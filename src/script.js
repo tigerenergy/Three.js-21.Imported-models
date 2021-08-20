@@ -111,7 +111,7 @@ scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 0, 0)
+controls.target.set(0, 0.75, 0)
 controls.enableDamping = true
 
 /**
